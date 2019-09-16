@@ -7,9 +7,9 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/Iuduxras/pangolin-node-4g/account"
-	"github.com/Iuduxras/pangolin-node-4g/service/ethInterface"
-	"github.com/Iuduxras/pangolin-node-4g/service/rpcMsg"
+	"github.com/Iuduxras/pangolin-node-4g-udp/account"
+	"github.com/Iuduxras/pangolin-node-4g-udp/service/ethInterface"
+	"github.com/Iuduxras/pangolin-node-4g-udp/service/rpcMsg"
 	"math/big"
 	"strings"
 )

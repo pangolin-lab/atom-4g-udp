@@ -2,9 +2,9 @@ package wallet
 
 import (
 	"fmt"
-	"github.com/Iuduxras/pangolin-node-4g/account"
-	"github.com/Iuduxras/pangolin-node-4g/network"
-	"github.com/Iuduxras/pangolin-node-4g/service/rpcMsg"
+	"github.com/Iuduxras/pangolin-node-4g-udp/account"
+	"github.com/Iuduxras/pangolin-node-4g-udp/network"
+	"github.com/Iuduxras/pangolin-node-4g-udp/service/rpcMsg"
 	"net"
 	"strings"
 	"syscall"

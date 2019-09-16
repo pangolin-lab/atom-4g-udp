@@ -3,24 +3,17 @@ package androidLib
 import "C"
 import (
 	"fmt"
-	"github.com/Iuduxras/atom-4g/Service4G"
-	"github.com/Iuduxras/atom-4g/ethereum"
-	"github.com/Iuduxras/atom-4g/tun2Pipe"
-	"github.com/Iuduxras/atom-4g/wallet"
-	"github.com/Iuduxras/pangolin-node-4g/account"
-	"github.com/Iuduxras/pangolin-node-4g/network"
-	"github.com/Iuduxras/pangolin-node-4g/pbs/pipeProxy"
-	"github.com/Iuduxras/pangolin-node-4g/service/rpcMsg"
+	"github.com/Iuduxras/atom-4g-udp/Service4G"
+	"github.com/Iuduxras/atom-4g-udp/ethereum"
+	"github.com/Iuduxras/atom-4g-udp/wallet"
+	"github.com/Iuduxras/pangolin-node-4g-udp/account"
+	"github.com/Iuduxras/pangolin-node-4g-udp/network"
+	"github.com/Iuduxras/pangolin-node-4g-udp/service/rpcMsg"
 	"github.com/btcsuite/btcutil/base58"
 )
 
-type VpnDelegate interface {
-	tun2Pipe.VpnDelegate
-	GetBootPath() string
-}
-
 const Separator = "@@@"
-var proxyConf = &pipeProxy.ProxyConfig{}
+var walletConf = &wallet.WConfig{}
 var _instance *Service4G.Consumer4G = nil
 
 type ConsumeDelegate interface {
@@ -35,7 +28,6 @@ func InitConsumer(addr, cipher, url, boot, ip,mac,IPs ,dbPath,serverIp string,d 
 		fmt.Printf("can't connect 4g node")
 		return err
 	}
-
 	hs := &rpcMsg.BYHandShake{
 		CmdType:  rpcMsg.CmdCheck,
 	}
@@ -52,7 +44,7 @@ func InitConsumer(addr, cipher, url, boot, ip,mac,IPs ,dbPath,serverIp string,d 
 		fmt.Printf("%s not a valid node address",ack.Message)
 		return err
 	}
-	proxyConf.WConfig = &wallet.WConfig{
+	walletConf = &wallet.WConfig{
 		BCAddr:     addr,
 		Cipher:     cipher,
 		SettingUrl: url,
@@ -67,7 +59,7 @@ func InitConsumer(addr, cipher, url, boot, ip,mac,IPs ,dbPath,serverIp string,d 
 }
 
 func SetupConsumer(password,locAddr string) error{
-	w, err := wallet.NewWallet(proxyConf.WConfig, password)
+	w, err := wallet.NewWallet(walletConf, password)
 	if err != nil {
 		return err
 	}
