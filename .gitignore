@@ -1,0 +1,23 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+/.idea/.gitignore
+/bin/dss.aar
+/.idea/autom.iml
+/bin/dss-sources.jar
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml
+.idea/
+bin/
+*.aar
+*.jar
