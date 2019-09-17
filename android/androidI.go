@@ -3,121 +3,42 @@ package androidLib
 import "C"
 import (
 	"fmt"
-	"github.com/Iuduxras/atom-4g-udp/Service4G"
+	"github.com/Iuduxras/atom-4g-udp/UDPWallet"
 	"github.com/Iuduxras/atom-4g-udp/ethereum"
-	"github.com/Iuduxras/atom-4g-udp/wallet"
 	"github.com/Iuduxras/pangolin-node-4g-udp/account"
-	"github.com/Iuduxras/pangolin-node-4g-udp/network"
-	"github.com/Iuduxras/pangolin-node-4g-udp/service/rpcMsg"
 	"github.com/btcsuite/btcutil/base58"
 )
 
 const Separator = "@@@"
-var walletConf = &wallet.WConfig{}
-var _instance *Service4G.Consumer4G = nil
+var wallet *UDPWallet.Wallet
 
-type ConsumeDelegate interface {
-	GetBootPath() string
-}
 
 //consumer setup
-func InitConsumer(addr, cipher, url, boot, ip,mac,IPs ,dbPath,serverIp string,d ConsumeDelegate) error{
-	//first we should get minerId
-	conn,err:=wallet.GetOuterConnSimple(wallet.NetAddrFixedPort(serverIp))
+func InitConsumer(addr, cipher, url, ip,mac ,serverIp, password string){
+	w,err := UDPWallet.NewWallet(addr,cipher,ip,mac ,serverIp,password)
 	if err!=nil{
-		fmt.Printf("can't connect 4g node")
-		return err
-	}
-	hs := &rpcMsg.BYHandShake{
-		CmdType:  rpcMsg.CmdCheck,
-	}
-
-	jsonConn := network.JsonConn{Conn: conn}
-	ack := &network.ProtonACK{}
-	if err := jsonConn.SynRes(hs,ack); err != nil {
-		fmt.Printf("TestTTL(%s) err:%s", addr, err)
-		return err
-	}
-
-	ID,err2:=account.ConvertToID(ack.Message)
-	if err2!=nil{
-		fmt.Printf("%s not a valid node address",ack.Message)
-		return err
-	}
-	walletConf = &wallet.WConfig{
-		BCAddr:     addr,
-		Cipher:     cipher,
-		SettingUrl: url,
-		Ip:         ip,
-		Mac:        mac,
-		ServerId:&wallet.ServeNodeId{
-			ID: ID,
-			IP: serverIp,
-		},
-	}
-	return nil
-}
-
-func SetupConsumer(password,locAddr string) error{
-	w, err := wallet.NewWallet(walletConf, password)
-	if err != nil {
-		return err
-	}
-	consumer, e := Service4G.NewConsumer(locAddr, w)
-	if e != nil {
+		fmt.Println("init wallet failed")
 		panic(err)
 	}
-	_instance = consumer
-	return nil
+	wallet = w
 }
 
-func Consuming(){
-	if _instance ==nil{
-		return
-	}
-	_instance.Consuming()
-	_instance = nil
-	fmt.Println("consuming is stopped")
+
+func Consuming(handler UDPWallet.CmdHandler){
+	wallet.Open(handler)
 }
 
 func StopConsuming(){
-	if _instance !=nil {
-		_instance.Done <- fmt.Errorf("user closed this")
-		_instance = nil
-		fmt.Println("user closed connection")
-	}else{
-		fmt.Println("did't find _instance, do nothing")
-	}
+	wallet.Close()
 }
 
-/*
-	returns:
-	{
-		Accepted bool
-		Credit   int64
-	}
-*/
-func Query() string{
-	if _instance !=nil{
-		return _instance.Query()
-	}else{
-		return ""
-	}
+func Query(){
+	wallet.SendCmdRequireService()
 }
 
-func Recharge(no int) bool{
-	if _instance !=nil{
-		if err:=_instance.Recharge(no);err!=nil{
-			fmt.Printf("recharge error : %v",err)
-			return false
-		}else{
-			return true
-		}
-	}else{
-		return false
-	}
+func Recharge(no int){
+	wallet.SendCmdRecharge(no)
 }
-
 
 func VerifyAccount(addr, cipher, password string) bool {
 	if _, err := account.AccFromString(addr, cipher, password); err != nil {
