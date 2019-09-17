@@ -9,7 +9,6 @@ import (
 )
 
 /*this message queue is for receiving udp message from node
-
  */
 
 const fixedServerPort = 50998
@@ -32,7 +31,7 @@ type CmdHandler interface {
 }
 
 //listen and receive msg, put msg in queue
-func (q *Queue) Receving() {
+func (q *Queue) Receiving() {
 	listener, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP("0.0.0.0"), Port: fixedClientPort})
 	if err != nil {
 		panic(err)
@@ -83,7 +82,6 @@ func (q *Queue) Handle(handler CmdHandler) {
 			}
 		}
 	}()
-
 }
 
 func (q *Queue) close() {
@@ -117,9 +115,9 @@ func (q *Queue) receiveResCmdRequireService(res *rpcMsg.UDPRes, handler CmdHandl
 }
 
 func (q *Queue) receiveResCmdRecharge(res *rpcMsg.UDPRes, handler CmdHandler) {
-	if q.VerifyRes(res){
+	if q.VerifyRes(res) {
 		//unpack msg
-		chargeNum:=utils.BytesToInt(res.Msg)
+		chargeNum := utils.BytesToInt(res.Msg)
 		handler.HandleChargeRes(chargeNum)
 	}
 }

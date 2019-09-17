@@ -64,7 +64,7 @@ func NewWallet(addr, cipher, ip, mac, serverIp, password string) (*Wallet, error
 
 func (w *Wallet)Open(handler CmdHandler){
 	fmt.Println("wallet open for consuming")
-	w.Queue.Receving()
+	w.Queue.Receiving()
 	w.Queue.Handle(handler)
 }
 
