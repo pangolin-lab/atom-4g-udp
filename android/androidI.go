@@ -12,6 +12,10 @@ import (
 const Separator = "@@@"
 var wallet *UDPWallet.Wallet
 
+type Handler interface {
+	UDPWallet.CmdHandler
+}
+
 
 //consumer setup
 func InitConsumer(addr, cipher, url, ip,mac ,serverIp, password string){
@@ -24,7 +28,7 @@ func InitConsumer(addr, cipher, url, ip,mac ,serverIp, password string){
 }
 
 
-func Consuming(handler UDPWallet.CmdHandler){
+func Consuming(handler Handler){
 	wallet.Open(handler)
 }
 
