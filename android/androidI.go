@@ -1,5 +1,7 @@
 package androidLib
 
+//package main
+
 import "C"
 import (
 	"fmt"
@@ -18,7 +20,7 @@ type Handler interface {
 
 
 //consumer setup
-func InitConsumer(addr, cipher, url, ip,mac ,serverIp, password string){
+func InitConsumer(addr, cipher, ip,mac ,serverIp, password string){
 	w,err := UDPWallet.NewWallet(addr,cipher,ip,mac ,serverIp,password)
 	if err!=nil{
 		fmt.Println("init wallet failed")
@@ -107,3 +109,30 @@ func UnbindProtonAddress(protonAddr, cipherKey, password string) string {
 	}
 	return tx
 }
+
+
+//////////////////    for test ///////////////////
+//
+//type fakeHandler struct {
+//
+//}
+//
+//func (f *fakeHandler) HandleRequireServiceRes(accepted bool, credit int64, msg string){
+//	fmt.Println(accepted,credit,msg)
+//}
+//func (f *fakeHandler) HandleChargeRes(number int){
+//	fmt.Println(number)
+//}
+//
+//func main(){
+//	InitConsumer(
+//		"YPGmpwh8Ev4eKmBhTvidBqgUvk4sgNJqipvQShtfR7vVYk",
+//		"4aLvNMdFyJy6wHsKZJMC1r2m6NzEBWu5sNPzqGhFyXhJwwY43unxijWGbKGZWqzJdZnvLSzqdtZqscVRHbz1hj5Yd9JdxG3wYv7FEqV57ZqNa",
+//		"127.0.0.1",
+//		"00:e0:4c:36:0a:2c",
+//		"127.0.0.1",
+//		"123")
+//
+//	handler := fakeHandler{}
+//	wallet.Open(&handler)
+//}
