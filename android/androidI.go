@@ -29,7 +29,6 @@ func InitConsumer(addr, cipher, ip,mac ,serverIp, password string){
 	wallet = w
 }
 
-
 func Consuming(handler Handler){
 	wallet.Open(handler)
 }
@@ -111,7 +110,7 @@ func UnbindProtonAddress(protonAddr, cipherKey, password string) string {
 }
 
 
-//////////////////    for test ///////////////////
+//////////////////for test///////////////////
 //
 //type fakeHandler struct {
 //
@@ -136,3 +135,4 @@ func UnbindProtonAddress(protonAddr, cipherKey, password string) string {
 //	handler := fakeHandler{}
 //	wallet.Open(&handler)
 //}
+//////////////////////////////////////////////
