@@ -104,6 +104,9 @@ func (w *Wallet) Open(handler CmdHandler) {
 }
 
 func (w *Wallet) Close() {
+	defer func() {
+		recover()
+	}()
 	w.conn.Close()
 	w.Queue.done <- true
 	close(w.Queue.queue)
@@ -141,6 +144,7 @@ func (w *Wallet) Receiving() {
 				}
 				res := &rpcMsg.UDPRes{}
 				json.Unmarshal(data[:n], res)
+				fmt.Println("Received msg of type" + rpcMsg.TranslateCmd(res.CmdType)+" push in queue")
 				w.Queue.queue <- res
 			}
 		}
@@ -210,6 +214,7 @@ func CreatePayBill(user, miner string, usage int, priKey ed25519.PrivateKey) (*r
 func (w *Wallet) Handle(handler CmdHandler) {
 	for {
 		res, more := <-w.Queue.queue
+		fmt.Println("handling msg of type: "+ rpcMsg.TranslateCmd(res.CmdType))
 		if more {
 			switch res.CmdType {
 			case rpcMsg.CmdRequireService:
@@ -243,10 +248,11 @@ func (w *Wallet) VerifyRes(res *rpcMsg.UDPRes) bool {
 func (w *Wallet) receiveResCmdRequireService(res *rpcMsg.UDPRes, handler CmdHandler) {
 	if w.VerifyRes(res) {
 		//unpack msg
-		credit := rpcMsg.CreditOnNode{}
+		credit := &rpcMsg.CreditOnNode{}
 		if err := json.Unmarshal(res.Msg, credit); err != nil {
 			fmt.Printf("unmarshal error: %v\n", err)
 		}
+		fmt.Println("cmd require service handler params: ",credit.Accepted, credit.Credit, credit.Msg)
 		handler.HandleRequireServiceRes(credit.Accepted, credit.Credit, credit.Msg)
 	}
 }
@@ -255,6 +261,7 @@ func (w *Wallet) receiveResCmdRecharge(res *rpcMsg.UDPRes, handler CmdHandler) {
 	if w.VerifyRes(res) {
 		//unpack msg
 		chargeNum := utils.BytesToInt(res.Msg)
+		fmt.Println("cmd recharge handler params: ",chargeNum)
 		handler.HandleChargeRes(chargeNum)
 	}
 }

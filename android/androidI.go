@@ -38,11 +38,15 @@ func StopConsuming(){
 }
 
 func Query(){
-	wallet.SendCmdRequireService()
+	if err:=wallet.SendCmdRequireService();err!=nil{
+		fmt.Printf("send require serivce error: %v\n",err)
+	}
 }
 
 func Recharge(no int){
-	wallet.SendCmdRecharge(no)
+	if err:=wallet.SendCmdRecharge(no);err!=nil{
+		fmt.Printf("send recharge error: %v\n",err)
+	}
 }
 
 func VerifyAccount(addr, cipher, password string) bool {
