@@ -13,6 +13,12 @@ import (
 
 const Separator = "@@@"
 var wallet *UDPWallet.Wallet
+var isOpen *bool
+
+func init()  {
+	f :=false
+	isOpen = &f
+}
 
 type Handler interface {
 	UDPWallet.CmdHandler
@@ -20,32 +26,60 @@ type Handler interface {
 
 
 //consumer setup
-func InitConsumer(addr, cipher, ip,mac ,serverIp, password string){
+func InitConsumer(addr, cipher, ip,mac ,serverIp, password string) bool{
 	w,err := UDPWallet.NewWallet(addr,cipher,ip,mac ,serverIp,password)
 	if err!=nil{
 		fmt.Println("init wallet failed")
 		panic(err)
 	}
 	wallet = w
+	if err:=w.TestConnection();err!=nil{
+		wallet = nil
+		f :=false
+		isOpen = &f
+		return false
+	}else{
+		return true
+	}
 }
 
 func Consuming(handler Handler){
+	t:=true
+	isOpen = &t
+	fmt.Printf("wallet status : %v\n",*isOpen)
 	wallet.Open(handler)
 }
 
 func StopConsuming(){
+	fmt.Println("closing")
+	if *isOpen{
+		wallet.SendCmdClose()
+	}
+	f:=false
+	isOpen = &f
+	fmt.Printf("wallet status : %v\n",*isOpen)
 	wallet.Close()
+	fmt.Println("closed")
 }
 
 func Query(){
-	if err:=wallet.SendCmdRequireService();err!=nil{
-		fmt.Printf("send require serivce error: %v\n",err)
+	if *isOpen{
+		if err:=wallet.SendCmdRequireService();err!=nil{
+			fmt.Printf("send require serivce error: %v\n",err)
+		}
+	}else{
+		fmt.Println("wallet is closed")
 	}
+
 }
 
 func Recharge(no int){
-	if err:=wallet.SendCmdRecharge(no);err!=nil{
-		fmt.Printf("send recharge error: %v\n",err)
+	if *isOpen{
+		if err:=wallet.SendCmdRecharge(no);err!=nil{
+			fmt.Printf("send recharge error: %v\n",err)
+		}
+	}else{
+		fmt.Println("wallet is closed")
 	}
 }
 

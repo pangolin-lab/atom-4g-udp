@@ -75,13 +75,14 @@ func (w *Wallet) TestConnection() error {
 	}
 	w.conn = conn
 	if err := w.SendCmdCheck(); err != nil {
-		panic(err)
+		return err
 	}
 	for {
 		data := make([]byte, 1024)
+		conn.SetReadDeadline(time.Now().Add(time.Duration(5) * time.Second))
 		n, _, err := conn.ReadFromUDP(data)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		res := &rpcMsg.UDPRes{}
 		json.Unmarshal(data[:n], res)
@@ -94,10 +95,6 @@ func (w *Wallet) TestConnection() error {
 }
 
 func (w *Wallet) Open(handler CmdHandler) {
-	//first we have to get nodeAddr, just like handshake
-	if err := w.TestConnection(); err != nil {
-		panic(err)
-	}
 	fmt.Println("connect node:" + w.Config.NodeAddr + " successfully, start serving")
 	w.Receiving()
 	w.Handle(handler)
@@ -160,6 +157,15 @@ func (w *Wallet) SendCmdCheck() error {
 	return nil
 }
 
+func (w *Wallet) SendCmdAlive() error{
+	req := &rpcMsg.UDPReq{}
+	req.AsCmdAlive(w.Config.BCAddr)
+	if err := w.Send(req); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (w *Wallet) SendCmdRequireService() error {
 	req := &rpcMsg.UDPReq{}
 	if err := req.AsCmdRequireService(&rpcMsg.SevReqData{
@@ -191,6 +197,14 @@ func (w *Wallet) SendCmdRecharge(no int) error {
 	return nil
 }
 
+func (w *Wallet) SendCmdClose(){
+	fmt.Println("send close cmd manually")
+	req := &rpcMsg.UDPReq{}
+	req.AsCmdClose(w.Config.BCAddr, w.acc.Key.PriKey)
+	w.Send(req)
+}
+
+
 func CreatePayBill(user, miner string, usage int, priKey ed25519.PrivateKey) (*rpcMsg.UserCreditPay, error) {
 	pay := &rpcMsg.CreditPayment{
 		UserAddr:    user,
@@ -214,13 +228,14 @@ func CreatePayBill(user, miner string, usage int, priKey ed25519.PrivateKey) (*r
 func (w *Wallet) Handle(handler CmdHandler) {
 	for {
 		res, more := <-w.Queue.queue
-		fmt.Println("handling msg of type: "+ rpcMsg.TranslateCmd(res.CmdType))
 		if more {
 			switch res.CmdType {
 			case rpcMsg.CmdRequireService:
 				w.receiveResCmdRequireService(res, handler)
 			case rpcMsg.CmdRecharge:
 				w.receiveResCmdRecharge(res, handler)
+			case rpcMsg.CmdAlive:
+				w.receiveResCmdAlive(res)
 			default:
 				fmt.Printf("received unknown cmd :%v", res)
 			}
@@ -263,5 +278,11 @@ func (w *Wallet) receiveResCmdRecharge(res *rpcMsg.UDPRes, handler CmdHandler) {
 		chargeNum := utils.BytesToInt(res.Msg)
 		fmt.Println("cmd recharge handler params: ",chargeNum)
 		handler.HandleChargeRes(chargeNum)
+	}
+}
+
+func (w *Wallet) receiveResCmdAlive(res *rpcMsg.UDPRes){
+	if err:=w.SendCmdAlive();err!=nil{
+		fmt.Println("send cmd alive failed")
 	}
 }
