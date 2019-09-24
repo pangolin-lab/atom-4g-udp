@@ -209,11 +209,13 @@ func (w *Wallet) SendCmdClose(){
 
 func (w *Wallet) SendCmdTrail() error{
 	req := &rpcMsg.UDPReq{}
-	req.AsCmdTrial(&rpcMsg.SevReqData{
+	if err:=req.AsCmdTrial(&rpcMsg.SevReqData{
 		Addr: w.Config.BCAddr,
 		Ip:   w.Config.Ip,
 		Mac:  w.Config.Mac,
-	},w.acc.Key.PriKey)
+	},w.acc.Key.PriKey);err!=nil{
+		return err
+	}
 	if err := w.Send(req); err != nil {
 		return err
 	}

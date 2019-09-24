@@ -26,7 +26,7 @@ type Handler interface {
 
 
 //consumer setup
-func InitConsumer(addr, cipher, ip,mac ,serverIp, password string) bool{
+func InitWallet(addr, cipher, ip,mac ,serverIp, password string) bool{
 	w,err := UDPWallet.NewWallet(addr,cipher,ip,mac ,serverIp,password)
 	if err!=nil{
 		fmt.Println("init wallet failed")
@@ -43,7 +43,7 @@ func InitConsumer(addr, cipher, ip,mac ,serverIp, password string) bool{
 	}
 }
 
-func Consuming(handler Handler){
+func Communicating(handler Handler){
 	t:=true
 	isOpen = &t
 	fmt.Printf("wallet status : %v\n",*isOpen)
@@ -174,7 +174,7 @@ func UnbindProtonAddress(protonAddr, cipherKey, password string) string {
 //}
 //
 //func main(){
-//	InitConsumer(
+//	InitWallet(
 //		"YPGmpwh8Ev4eKmBhTvidBqgUvk4sgNJqipvQShtfR7vVYk",
 //		"4aLvNMdFyJy6wHsKZJMC1r2m6NzEBWu5sNPzqGhFyXhJwwY43unxijWGbKGZWqzJdZnvLSzqdtZqscVRHbz1hj5Yd9JdxG3wYv7FEqV57ZqNa",
 //		"127.0.0.1",
