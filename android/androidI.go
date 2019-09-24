@@ -62,6 +62,18 @@ func StopConsuming(){
 	fmt.Println("closed")
 }
 
+func ApplyTrail(){
+	fmt.Println("apply for trail")
+	if *isOpen{
+		fmt.Printf("wallet is open, can't apply")
+	}else{
+		if err:=wallet.SendCmdTrail();err!=nil{
+			fmt.Printf("error sending apply for trail %v\n",err)
+		}
+	}
+}
+
+
 func Query(){
 	if *isOpen{
 		if err:=wallet.SendCmdRequireService();err!=nil{

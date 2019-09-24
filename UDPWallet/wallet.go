@@ -41,6 +41,7 @@ type Queue struct {
 type CmdHandler interface {
 	HandleRequireServiceRes(accepted bool, credit int64, msg string)
 	HandleChargeRes(number int)
+	HandleApplyTrail(accepted bool, state int)
 }
 
 func NewWallet(addr, cipher, ip, mac, serverIp, password string) (*Wallet, error) {
@@ -91,6 +92,7 @@ func (w *Wallet) TestConnection() error {
 			break
 		}
 	}
+	w.conn.SetReadDeadline(time.Time{})
 	return nil
 }
 
@@ -121,7 +123,6 @@ func (w *Wallet) Send(req *rpcMsg.UDPReq) error {
 //listen and receive msg, put msg in queue
 func (w *Wallet) Receiving() {
 	fmt.Println("get udp listener")
-	data := make([]byte, 1024)
 	go func() {
 		fmt.Println("listening")
 		for {
@@ -130,9 +131,10 @@ func (w *Wallet) Receiving() {
 				fmt.Println("done receiving")
 				return
 			default:
+				data := make([]byte, 1024)
 				n, remoteAddr, err := w.conn.ReadFromUDP(data)
 				if err != nil {
-					fmt.Printf("error during read: %s", err)
+					fmt.Printf("error during read: %s\n", err)
 					continue
 				}
 				if remoteAddr.IP.String() != w.Config.NodeIP {
@@ -147,6 +149,7 @@ func (w *Wallet) Receiving() {
 		}
 	}()
 }
+
 
 func (w *Wallet) SendCmdCheck() error {
 	req := &rpcMsg.UDPReq{}
@@ -204,6 +207,18 @@ func (w *Wallet) SendCmdClose(){
 	w.Send(req)
 }
 
+func (w *Wallet) SendCmdTrail() error{
+	req := &rpcMsg.UDPReq{}
+	req.AsCmdTrial(&rpcMsg.SevReqData{
+		Addr: w.Config.BCAddr,
+		Ip:   w.Config.Ip,
+		Mac:  w.Config.Mac,
+	},w.acc.Key.PriKey)
+	if err := w.Send(req); err != nil {
+		return err
+	}
+	return nil
+}
 
 func CreatePayBill(user, miner string, usage int, priKey ed25519.PrivateKey) (*rpcMsg.UserCreditPay, error) {
 	pay := &rpcMsg.CreditPayment{
@@ -236,6 +251,8 @@ func (w *Wallet) Handle(handler CmdHandler) {
 				w.receiveResCmdRecharge(res, handler)
 			case rpcMsg.CmdAlive:
 				w.receiveResCmdAlive(res)
+			case rpcMsg.CmdTrial:
+				w.receiveResCmdTrail(res,handler)
 			default:
 				fmt.Printf("received unknown cmd :%v", res)
 			}
@@ -284,5 +301,16 @@ func (w *Wallet) receiveResCmdRecharge(res *rpcMsg.UDPRes, handler CmdHandler) {
 func (w *Wallet) receiveResCmdAlive(res *rpcMsg.UDPRes){
 	if err:=w.SendCmdAlive();err!=nil{
 		fmt.Println("send cmd alive failed")
+	}
+}
+
+func (w *Wallet) receiveResCmdTrail(res *rpcMsg.UDPRes, handler CmdHandler){
+	if w.VerifyRes(res){
+		//unpack msg
+		trailRes:=&rpcMsg.TrailRes{}
+		if err := json.Unmarshal(res.Msg, trailRes); err != nil {
+			fmt.Printf("unmarshal error: %v\n", err)
+		}
+		handler.HandleApplyTrail(trailRes.Accepted,trailRes.State)
 	}
 }
