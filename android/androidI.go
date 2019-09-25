@@ -12,11 +12,12 @@ import (
 )
 
 const Separator = "@@@"
+
 var wallet *UDPWallet.Wallet
 var isOpen *bool
 
-func init()  {
-	f :=false
+func init() {
+	f := false
 	isOpen = &f
 }
 
@@ -24,73 +25,74 @@ type Handler interface {
 	UDPWallet.CmdHandler
 }
 
-
 //consumer setup
-func InitWallet(addr, cipher, ip,mac ,serverIp, password string) bool{
-	w,err := UDPWallet.NewWallet(addr,cipher,ip,mac ,serverIp,password)
-	if err!=nil{
+func InitWallet(addr, cipher, ip, mac, serverIp, password string) bool {
+	w, err := UDPWallet.NewWallet(addr, cipher, ip, mac, serverIp, password)
+	if err != nil {
 		fmt.Println("init wallet failed")
 		panic(err)
 	}
 	wallet = w
-	if err:=w.TestConnection();err!=nil{
+	if err := w.TestConnection(); err != nil {
 		wallet = nil
-		f :=false
+		f := false
 		isOpen = &f
+		fmt.Printf("init fail error : %v\n",err)
 		return false
-	}else{
+	} else {
 		return true
 	}
 }
 
-func Communicating(handler Handler){
-	t:=true
+func Communicating(handler Handler) {
+	t := true
 	isOpen = &t
-	fmt.Printf("wallet status : %v\n",*isOpen)
+	fmt.Printf("wallet status : %v\n", *isOpen)
 	wallet.Open(handler)
 }
 
-func StopConsuming(){
+func StopConsuming() {
 	fmt.Println("closing")
-	if *isOpen{
+	if *isOpen {
 		wallet.SendCmdClose()
 	}
-	f:=false
+	f := false
 	isOpen = &f
-	fmt.Printf("wallet status : %v\n",*isOpen)
 	wallet.Close()
-	fmt.Println("closed")
+	fmt.Println("wallet closed")
 }
 
-func ApplyTrail(){
-	fmt.Println("apply for trail")
-	if *isOpen{
-		fmt.Printf("wallet is open, can't apply")
-	}else{
-		if err:=wallet.SendCmdTrail();err!=nil{
-			fmt.Printf("error sending apply for trail %v\n",err)
-		}
+func StopTrail(){
+	fmt.Println("stop trail")
+	f := false
+	isOpen = &f
+	wallet.Close()
+	fmt.Println("wallet closed")
+}
+
+func ApplyTrail() {
+	if err := wallet.SendCmdTrail(); err != nil {
+		fmt.Printf("error sending apply for trail %v\n", err)
 	}
 }
 
-
-func Query(){
-	if *isOpen{
-		if err:=wallet.SendCmdRequireService();err!=nil{
-			fmt.Printf("send require serivce error: %v\n",err)
+func Query() {
+	if *isOpen {
+		if err := wallet.SendCmdRequireService(); err != nil {
+			fmt.Printf("send require serivce error: %v\n", err)
 		}
-	}else{
+	} else {
 		fmt.Println("wallet is closed")
 	}
 
 }
 
-func Recharge(no int){
-	if *isOpen{
-		if err:=wallet.SendCmdRecharge(no);err!=nil{
-			fmt.Printf("send recharge error: %v\n",err)
+func Recharge(no int) {
+	if *isOpen {
+		if err := wallet.SendCmdRecharge(no); err != nil {
+			fmt.Printf("send recharge error: %v\n", err)
 		}
-	}else{
+	} else {
 		fmt.Println("wallet is closed")
 	}
 }
@@ -158,7 +160,6 @@ func UnbindProtonAddress(protonAddr, cipherKey, password string) string {
 	}
 	return tx
 }
-
 
 //////////////////for test///////////////////
 //

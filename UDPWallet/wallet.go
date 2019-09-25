@@ -41,7 +41,7 @@ type Queue struct {
 type CmdHandler interface {
 	HandleRequireServiceRes(accepted bool, credit int64, msg string)
 	HandleChargeRes(number int)
-	HandleApplyTrail(accepted bool, state int)
+	HandleApplyTrail(accepted bool, state int, freeSeconds int)
 }
 
 func NewWallet(addr, cipher, ip, mac, serverIp, password string) (*Wallet, error) {
@@ -313,6 +313,6 @@ func (w *Wallet) receiveResCmdTrail(res *rpcMsg.UDPRes, handler CmdHandler){
 		if err := json.Unmarshal(res.Msg, trailRes); err != nil {
 			fmt.Printf("unmarshal error: %v\n", err)
 		}
-		handler.HandleApplyTrail(trailRes.Accepted,trailRes.State)
+		handler.HandleApplyTrail(trailRes.Accepted,trailRes.State,trailRes.FreeSeconds)
 	}
 }
